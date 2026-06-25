@@ -10,7 +10,14 @@ export const config = {
   codeLeadMinutes: Number(process.env.CODE_LEAD_MINUTES ?? 15),
   codeGraceMinutes: Number(process.env.CODE_GRACE_MINUTES ?? 15),
   webhookSecret: process.env.WEBHOOK_SECRET,
-  businessTimezone: process.env.BUSINESS_TIMEZONE ?? "America/New_York"
+  businessTimezone: process.env.BUSINESS_TIMEZONE ?? "America/New_York",
+  vagaroClientId: process.env.VAGARO_CLIENT_ID,
+  vagaroClientSecret: process.env.VAGARO_CLIENT_SECRET,
+  vagaroTokenUrl: process.env.VAGARO_TOKEN_URL,
+  vagaroTokenScope: process.env.VAGARO_TOKEN_SCOPE ?? "customers",
+  vagaroCustomerUrlTemplate: process.env.VAGARO_CUSTOMER_URL_TEMPLATE,
+  vagaroApiBaseUrl: process.env.VAGARO_API_BASE_URL,
+  vagaroRegion: process.env.VAGARO_REGION ?? "us"
 };
 
 export function assertRuntimeConfig() {

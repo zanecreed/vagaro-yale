@@ -6,9 +6,11 @@ import {
   listAccessCodes,
   updateAccessCode
 } from "./seam.js";
+import { getCustomerPhone } from "./vagaroApi.js";
 import { normalizeAppointment } from "./vagaro.js";
 
 const CODE_NAME_PREFIX = "Vagaro ";
+const APP_VERSION = "2026-06-25-vagaro-customer-lookup-v2";
 
 assertRuntimeConfig();
 
@@ -17,7 +19,13 @@ const server = http.createServer(async (request, response) => {
     const url = new URL(request.url, `http://${request.headers.host}`);
 
     if (request.method === "GET" && url.pathname === "/health") {
-      return sendJson(response, 200, { ok: true });
+      return sendJson(response, 200, {
+        ok: true,
+        version: APP_VERSION,
+        vagaroApiConfigured: Boolean(config.vagaroClientId && config.vagaroClientSecret),
+        vagaroRegion: config.vagaroRegion,
+        vagaroTokenScope: config.vagaroTokenScope
+      });
     }
 
     if (request.method === "POST" && url.pathname === "/webhooks/vagaro") {
@@ -49,8 +57,34 @@ server.listen(config.port, () => {
 });
 
 export async function handleVagaroWebhook(payload) {
-  const appointment = normalizeAppointment(payload);
+  let appointment = normalizeAppointment(payload);
   console.log("Normalized Vagaro webhook:", JSON.stringify(appointment));
+
+  if (
+    appointment.error?.includes("customer phone number") &&
+    appointment.customerId &&
+    appointment.businessId &&
+    !appointment.isCanceled
+  ) {
+    console.log(
+      "Missing phone; attempting Vagaro customer lookup:",
+      JSON.stringify({
+        customerId: appointment.customerId,
+        businessId: appointment.businessId,
+        vagaroApiConfigured: Boolean(config.vagaroClientId && config.vagaroClientSecret),
+        vagaroRegion: config.vagaroRegion,
+        vagaroTokenScope: config.vagaroTokenScope
+      })
+    );
+    const customerPhone = await getCustomerPhone({
+      customerId: appointment.customerId,
+      businessId: appointment.businessId
+    });
+    if (customerPhone) {
+      appointment = normalizeAppointment(payload, { customerPhone });
+      console.log("Normalized Vagaro webhook after customer lookup:", JSON.stringify(appointment));
+    }
+  }
 
   if (appointment.ignored) {
     return { status: 202, body: { ok: true, ignored: true, reason: appointment.reason } };

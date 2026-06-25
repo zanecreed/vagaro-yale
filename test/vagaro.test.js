@@ -49,3 +49,24 @@ test("detects canceled appointment events", () => {
 
   assert.equal(appointment.isCanceled, true);
 });
+
+test("uses a customer phone supplied by API lookup", () => {
+  const appointment = normalizeAppointment(
+    {
+      appointmentId: 12345,
+      serviceName: "Spectra S11 Session",
+      customerId: "customer-123",
+      businessId: "business-456",
+      startTime: "2026-07-01T14:00:00-04:00",
+      endTime: "2026-07-01T15:00:00-04:00"
+    },
+    {
+      customerPhone: "555-222-4455"
+    }
+  );
+
+  assert.equal(appointment.customerId, "customer-123");
+  assert.equal(appointment.businessId, "business-456");
+  assert.equal(appointment.code, "4455");
+  assert.equal(appointment.error, undefined);
+});

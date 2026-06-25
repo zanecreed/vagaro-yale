@@ -24,6 +24,9 @@ const PHONE_KEYS = [
   "clientphone"
 ];
 
+const CUSTOMER_ID_KEYS = ["customerid", "customer_id", "clientid", "client_id"];
+const BUSINESS_ID_KEYS = ["businessid", "business_id"];
+
 const START_KEYS = [
   "start",
   "starts",
@@ -52,7 +55,7 @@ const END_KEYS = [
 
 const DURATION_KEYS = ["duration", "durationminutes", "duration_minutes", "length"];
 
-export function normalizeAppointment(payload) {
+export function normalizeAppointment(payload, options = {}) {
   const flat = flatten(payload);
   const searchableText = JSON.stringify(payload).toLowerCase();
   const isTargetService = searchableText.includes(config.serviceFilter);
@@ -70,7 +73,9 @@ export function normalizeAppointment(payload) {
 
   const appointmentId =
     findFirstValue(flat, APPOINTMENT_ID_KEYS) ?? stablePayloadHash(payload);
-  const phone = findFirstValue(flat, PHONE_KEYS);
+  const customerId = findFirstValue(flat, CUSTOMER_ID_KEYS);
+  const businessId = findFirstValue(flat, BUSINESS_ID_KEYS);
+  const phone = options.customerPhone ?? findFirstValue(flat, PHONE_KEYS);
   const code = lastFourDigits(phone);
 
   const startRaw = findFirstValue(flat, START_KEYS);
@@ -95,6 +100,8 @@ export function normalizeAppointment(payload) {
       ignored: false,
       error: `Missing ${missing.join(", ")} in Vagaro webhook payload.`,
       appointmentId,
+      customerId: customerId ? String(customerId) : undefined,
+      businessId: businessId ? String(businessId) : undefined,
       isCanceled
     };
   }
@@ -102,6 +109,8 @@ export function normalizeAppointment(payload) {
   return {
     ignored: false,
     appointmentId: String(appointmentId),
+    customerId: customerId ? String(customerId) : undefined,
+    businessId: businessId ? String(businessId) : undefined,
     name,
     code,
     startsAt: addMinutes(start, -config.codeLeadMinutes).toISOString(),
