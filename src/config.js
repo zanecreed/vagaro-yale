@@ -14,7 +14,7 @@ export const config = {
   vagaroClientId: process.env.VAGARO_CLIENT_ID,
   vagaroClientSecret: process.env.VAGARO_CLIENT_SECRET,
   vagaroTokenUrl: process.env.VAGARO_TOKEN_URL,
-  vagaroTokenScope: process.env.VAGARO_TOKEN_SCOPE ?? "customers",
+  vagaroTokenScope: process.env.VAGARO_TOKEN_SCOPE ?? "read access",
   vagaroCustomerUrlTemplate: process.env.VAGARO_CUSTOMER_URL_TEMPLATE,
   vagaroApiBaseUrl: process.env.VAGARO_API_BASE_URL,
   vagaroRegion: process.env.VAGARO_REGION ?? "us"

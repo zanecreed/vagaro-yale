@@ -24,7 +24,7 @@ For Vagaro API customer lookup, also set:
 VAGARO_CLIENT_ID=your_vagaro_client_id
 VAGARO_CLIENT_SECRET=your_vagaro_client_secret
 VAGARO_REGION=us
-VAGARO_TOKEN_SCOPE=customers
+VAGARO_TOKEN_SCOPE=read access
 ```
 
 The Generate Access Token endpoint defaults to:
@@ -39,7 +39,7 @@ It sends this JSON body:
 {
   "clientId": "from Render env",
   "clientSecretKey": "from Render env",
-  "scope": "customers"
+  "scope": "read access"
 }
 ```
 
