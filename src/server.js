@@ -58,7 +58,15 @@ export async function handleVagaroWebhook(payload) {
 
   if (appointment.error) {
     console.log("Original Vagaro payload:", JSON.stringify(payload));
-    return { status: 422, body: { ok: false, error: appointment.error } };
+    return {
+      status: 202,
+      body: {
+        ok: true,
+        skipped: true,
+        reason: appointment.error,
+        appointmentId: appointment.appointmentId
+      }
+    };
   }
 
   const accessCodes = await listAccessCodes();

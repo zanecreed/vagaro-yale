@@ -67,4 +67,4 @@ Include `x-webhook-secret` if you set `WEBHOOK_SECRET`.
 
 ## First Live Payload
 
-Vagaro webhook field names may vary by account. If the first webhook returns `422`, check the service logs. It will print the original payload so the field mapper can be adjusted.
+Vagaro webhook field names may vary by account. If a webhook cannot be processed because the payload is missing appointment fields, the service returns success to Vagaro and logs the original payload so the field mapper can be adjusted.
