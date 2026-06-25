@@ -88,21 +88,28 @@ async function getAccessToken() {
 
   const data = await readJsonResponse(response);
 
-  const accessToken = data.access_token ?? data.accessToken ?? data.token;
+  const accessToken =
+    data.access_token ??
+    data.accessToken ??
+    data.token ??
+    data.data?.access_token ??
+    data.data?.accessToken ??
+    data.data?.token;
 
   if (!response.ok || !accessToken) {
     const message =
       data?.error_description ??
       data?.error?.message ??
+      data?.data?.message ??
       data?.message ??
       `Vagaro token request failed with HTTP ${response.status}`;
     const error = new Error(message);
     error.status = response.status;
-    error.response = data;
+    error.response = redactTokenResponse(data);
     throw error;
   }
 
-  const expiresInSeconds = Number(data.expires_in ?? 3600);
+  const expiresInSeconds = Number(data.expires_in ?? data.data?.expires_in ?? 3600);
   tokenCache = {
     accessToken,
     expiresAt: Date.now() + expiresInSeconds * 1000
@@ -173,4 +180,15 @@ async function readJsonResponse(response) {
   } catch {
     return { raw: text };
   }
+}
+
+function redactTokenResponse(value) {
+  const copy = JSON.parse(JSON.stringify(value ?? {}));
+  for (const container of [copy, copy.data]) {
+    if (!container || typeof container !== "object") continue;
+    for (const key of ["access_token", "accessToken", "token"]) {
+      if (container[key]) container[key] = "[redacted]";
+    }
+  }
+  return copy;
 }
