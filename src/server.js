@@ -6,11 +6,12 @@ import {
   listAccessCodes,
   updateAccessCode
 } from "./seam.js";
+import { mergeAccessCodeWindow } from "./accessCodeWindow.js";
 import { getCustomerPhone } from "./vagaroApi.js";
 import { normalizeAppointment } from "./vagaro.js";
 
 const CODE_NAME_PREFIX = "Vagaro ";
-const APP_VERSION = "2026-06-25-vagaro-customer-lookup-v2";
+const APP_VERSION = "2026-07-01-merge-duplicate-pin-windows";
 
 assertRuntimeConfig();
 
@@ -105,6 +106,9 @@ export async function handleVagaroWebhook(payload) {
 
   const accessCodes = await listAccessCodes();
   const existing = accessCodes.find((code) => code.name === appointment.name);
+  const samePinCode = appointment.code
+    ? accessCodes.find((accessCode) => accessCode.code === appointment.code)
+    : null;
 
   if (appointment.isCanceled) {
     if (existing) {
@@ -118,6 +122,33 @@ export async function handleVagaroWebhook(payload) {
     return {
       status: 200,
       body: { ok: true, action: "nothing_to_delete", appointmentId: appointment.appointmentId }
+    };
+  }
+
+  if (samePinCode) {
+    const merged = mergeAccessCodeWindow(samePinCode, appointment);
+    console.log(
+      "Existing Seam PIN found; extending access-code window:",
+      JSON.stringify({
+        accessCodeId: merged.accessCodeId,
+        code: merged.code,
+        startsAt: merged.startsAt,
+        endsAt: merged.endsAt
+      })
+    );
+
+    await updateAccessCode(merged);
+
+    return {
+      status: 200,
+      body: {
+        ok: true,
+        action: "extended",
+        appointmentId: appointment.appointmentId,
+        accessCodeId: merged.accessCodeId,
+        startsAt: merged.startsAt,
+        endsAt: merged.endsAt
+      }
     };
   }
 

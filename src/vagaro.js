@@ -89,9 +89,9 @@ export function normalizeAppointment(payload, options = {}) {
       : null);
 
   const missing = [];
-  if (!code) missing.push("customer phone number");
-  if (!start) missing.push("appointment start time");
-  if (!appointmentEnd) missing.push("appointment end time or duration");
+  if (!isCanceled && !code) missing.push("customer phone number");
+  if (!isCanceled && !start) missing.push("appointment start time");
+  if (!isCanceled && !appointmentEnd) missing.push("appointment end time or duration");
 
   const name = `Vagaro ${appointmentId} spectra s11`;
 
@@ -102,6 +102,7 @@ export function normalizeAppointment(payload, options = {}) {
       appointmentId,
       customerId: customerId ? String(customerId) : undefined,
       businessId: businessId ? String(businessId) : undefined,
+      name,
       isCanceled
     };
   }
@@ -113,8 +114,10 @@ export function normalizeAppointment(payload, options = {}) {
     businessId: businessId ? String(businessId) : undefined,
     name,
     code,
-    startsAt: addMinutes(start, -config.codeLeadMinutes).toISOString(),
-    endsAt: addMinutes(appointmentEnd, config.codeGraceMinutes).toISOString(),
+    startsAt: start ? addMinutes(start, -config.codeLeadMinutes).toISOString() : undefined,
+    endsAt: appointmentEnd
+      ? addMinutes(appointmentEnd, config.codeGraceMinutes).toISOString()
+      : undefined,
     isCanceled
   };
 }
